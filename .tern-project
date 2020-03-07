@@ -1,0 +1,17 @@
+{
+  "ecmaVersion": 6,
+  "libs": [
+    "ecma5",
+    "ecma6"
+  ],
+  "plugins": {
+    "node": {},
+    "es_modules": {},
+    "modules": {},
+    "requirejs": {
+      "baseURL": "./",
+      "paths": {}
+    }
+  }
+}
+

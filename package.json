@@ -1,0 +1,26 @@
+{
+  "name": "hackathon",
+  "version": "1.0.0",
+  "description": "Hackathon project 2020",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js 8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/CampbellCrowley/Hackathon2020.git"
+  },
+  "author": "Campbell Crowley",
+  "license": "UNLICENCED",
+  "bugs": {
+    "url": "https://github.com/CampbellCrowley/Hackathon2020/issues"
+  },
+  "homepage": "https://github.com/CampbellCrowley/Hackathon2020#readme",
+  "dependencies": {
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0"
+  }
+}
