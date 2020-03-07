@@ -1,13 +1,17 @@
 const socket = io();
 const speed = 4;
 socket.on('data', (data) => {
-  car.sprite.x += data.gamma / 90 * speed;
-  car.sprite.y += data.beta / 90 * speed;
+  car.sprite.angle = -data.alpha;
+  const rotated = rotateVector(data.gamma / 90 * speed, data.beta / 90 * speed, -data.alpha);
+  car.sprite.x += rotated.x;
+  car.sprite.y += rotated.y;
+  // car.sprite.x += data.gamma / 90 * speed;
+  // car.sprite.y += data.beta / 90 * speed;
 });
 socket.on('connect', () => {
   console.log('Connected');
   socket.emit('identify', 'game');
-})
+});
 
 // Nunber of lines
 var MAX_ROAD_LINES = 6;
@@ -32,19 +36,19 @@ function startGame() {
       }
     }
   };
-  road.bg = new createShader(40, 0, 910, 540, 'lightgray', road);
+  road.bg = new createSprite(40, 0, 910, 540, 'lightgray', road);
   for (var i = 0; i < MAX_ROAD_LINES; i++) {
-    road.lines.push(new createShader(495, i * 98, 10, 50, 'yellow', null));
+    road.lines.push(new createSprite(495, i * 98, 10, 50, 'yellow', null));
   }
-  
+
   // Create the car
   car = {
     imgLoaded: false,
     img: new Image(),
-    sprite: null, 
+    sprite: null,
     speed: 0,
   };
-  car.sprite = new createShader(495, 120, 20, 20, 'red', car);
+  car.sprite = new createSprite(495, 120, 20, 20, 'red', car);
   car.img.src = 'images/car.png';
   car.img.onload = function () {
 	  car.imgLoaded = true;
@@ -52,11 +56,12 @@ function startGame() {
 }
 
 // Constructor for a game object
-function createShader(x, y, width, height, color, obj) {
+function createSprite(x, y, width, height, color, obj) {
   this.width = width;
   this.height = height;
   this.x = x;
   this.y = y;
+  this.angle = 270;
   if (obj === null) {
     ctx = myGameArea.context;
     ctx.fillStyle = color;
@@ -72,7 +77,13 @@ function createShader(x, y, width, height, color, obj) {
     if (!obj || !obj.imgLoaded) {
       ctx.fillRect(this.x, this.y, this.width, this.height);
     } else {
-      ctx.drawImage(obj.img, this.x, this.y);
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle * (3.14 / 180));
+      ctx.drawImage(obj.img,
+        -(obj.img.width / 2),
+        -(obj.img.height / 2));
+      ctx.restore();
     }
   }
 }
