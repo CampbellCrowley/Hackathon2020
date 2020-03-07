@@ -9,6 +9,8 @@ class Server {
     this._games = {};
     this._controllers = {};
 
+    this._interval = null;
+
     this._app = http.createServer((...args) => this._handler(...args));
     this._io = sIO(this._app, {path: '/socket.io/'});
 
@@ -56,10 +58,26 @@ class Server {
     });
   }
   _handleNewRotation(data) {
+    console.log('New Data', JSON.stringify(data));
     for (const g in this._games) {
       if (!g || !g.emit) continue;
       g.emit('data', data);
     }
+  }
+  startRandomData() {
+    this._interval = setInterval(() => {
+      const now = Date.now();
+      const t = now / (2 * Math.PI);
+      this._handleNewRotation({
+        alpha: 360 * Math.sin(t),
+        beta: (360 * Math.sin(t)) - 180,
+        gamma: (180 * Math.sin(t)) - 90,
+        absolute: true,
+      });
+    }, 200);
+  }
+  stopRandomData() {
+    clearInterval(this._interval);
   }
   exit() {
     if (this._app) this._app.close();
@@ -70,7 +88,12 @@ class Server {
 
 if (require.main === module) {
   console.log('Started via CLI, booting up...');
-  const server = new Server(process.argv[2], process.argv[3]);
+  const args = process.argv.slice(0);
+  const randIndex = args.indexOf('--random-data');
+  const rand = randIndex > -1;
+  if (rand) args.splice(randIndex, 1);
+  const server = new Server(args[2], args[3]);
+  if (rand) server.startRandomData();
 
   process.on('SIGINT', server.exit);
   process.on('SIGTERM', server.exit);
