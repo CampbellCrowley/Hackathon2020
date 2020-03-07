@@ -1,10 +1,15 @@
 const http = require('http');
+const https = require('https');
 const sIO = require('socket.io');
 const fs = require('fs');
 
-class Server {
-  constructor(port, host) {
+const options = {
+  key: fs.readFileSync('key.pem'),
+  cert: fs.readFileSync('cert.pem'),
+};
 
+class Server {
+  constructor(port, portS) {
     this._sockets = {};
     this._games = {};
     this._controllers = {};
@@ -12,10 +17,16 @@ class Server {
     this._interval = null;
 
     this._app = http.createServer((...args) => this._handler(...args));
-    this._io = sIO(this._app, {path: '/socket.io/'});
+    this._appS = https.createServer(options, (...args) => this._handler(...args));
+    this._io = sIO(this._app);
+    this._ioS = sIO(this._appS);
 
-    this._app.listen(port, host);
+    this._app.listen(port);
+    this._appS.listen(portS);
     this._io.on('connection', (...args) => this._socketConnection(...args));
+    this._ioS.on('connection', (...args) => this._socketConnection(...args));
+
+    console.log('Server started:', port, portS, !!options);
   }
   _handler(req, res) {
     const file = `.${req.url}`;
@@ -92,7 +103,9 @@ class Server {
   }
   exit() {
     if (this._app) this._app.close();
+    if (this._appS) this._appS.close();
     if (this._io) this._io.close();
+    if (this._ioS) this._ioS.close();
     process.exit(-1);
   }
 }
