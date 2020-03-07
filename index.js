@@ -18,17 +18,25 @@ class Server {
     this._io.on('connection', (...args) => this._socketConnection(...args));
   }
   _handler(req, res) {
-    const file = req.url.slice(1);
+    const file = `.${req.url}`;
     console.log('REQ:', file);
-    fs.readFile(file, (err, data) => {
+    fs.realpath(file, (err, file) => {
       if (err) {
         console.log(err);
         res.writeHead(404);
         res.end('404');
         return;
       }
-      res.writeHead(200);
-      res.end(data);
+      fs.readFile(file, (err, data) => {
+        if (err) {
+          console.log(err);
+          res.writeHead(404);
+          res.end('404');
+          return;
+        }
+        res.writeHead(200);
+        res.end(data);
+      });
     });
   }
   _socketConnection(socket) {
