@@ -2,18 +2,26 @@
 	<head>
 		<title>Hello World</title>
 	</head>
-	
+	<style>
+	body {
+		width: 40%;
+		margin: 0 auto;
+	}	
+	</style>
 	<body>
+		
+		<img src="images/yaw.png" /><br>
 		Yaw: <b id="yaw"></b><br>
+		<img src="images/pitch.png" /><br>
 		Pitch: <b id="pitch"></b><br>
+		<img src="images/roll.png"/><br>
 		Roll: <b id="roll"></b>
-		: <b id="version"></b>
 		<script src="/node_modules/socket.io-client/dist/socket.io.js"></script>
 		<script>
 			window.addEventListener("deviceorientation", handleOrientation);
 			function handleOrientation(event)
 			{
-				var alpha = event.alpha;
+				var alpha = event.alpha - 270;
 				var beta = event.beta;
 				var gamma = event.gamma;
 				document.getElementById("yaw").innerHTML = alpha;	
