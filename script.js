@@ -1,7 +1,8 @@
 const socket = io();
+const speed = 4;
 socket.on('data', (data) => {
-  car.sprite.x += data.gamma / 90;
-  car.sprite.y += data.beta / 180;
+  car.sprite.x += data.gamma / 90 * speed;
+  car.sprite.y += data.beta / 90 * speed;
 });
 socket.on('connect', () => {
   console.log('Connected');
