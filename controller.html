@@ -4,6 +4,10 @@
 	</head>
 	
 	<body>
+		Yaw: <b id="yaw"></b><br>
+		Pitch: <b id="pitch"></b><br>
+		Roll: <b id="roll"></b>
+		: <b id="version"></b>
 		<script src="/node_modules/socket.io-client/dist/socket.io.js"></script>
 		<script>
 			window.addEventListener("deviceorientation", handleOrientation);
@@ -12,9 +16,9 @@
 				var alpha = event.alpha;
 				var beta = event.beta;
 				var gamma = event.gamma;
-				//document.write(alpha);	
-				//document.write(beta);	
-				//document.write(gamma);
+				document.getElementById("yaw").innerHTML = alpha;	
+				document.getElementById("pitch").innerHTML = beta;	
+				document.getElementById("roll").innerHTML = gamma;	
 				socket.emit('data', {
 				alpha:event.alpha,
 				beta:event.beta,
