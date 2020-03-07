@@ -43,6 +43,7 @@ class Server {
     });
 
     socket.on('identify', (type) => {
+      console.log('ID:', type, socket.id);
       switch (type) {
         case 'game':
           this._games[socket.id] = socket;
@@ -59,7 +60,9 @@ class Server {
   }
   _handleNewRotation(data) {
     console.log('New Data', JSON.stringify(data));
-    for (const g in this._games) {
+    for (const i in this._games) {
+      if (!i) continue;
+      const g = this._games[i];
       if (!g || !g.emit) continue;
       g.emit('data', data);
     }
