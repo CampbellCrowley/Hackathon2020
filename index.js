@@ -6,6 +6,8 @@ class Server {
   constructor(port, host) {
 
     this._sockets = {};
+    this._games = {};
+    this._controllers = {};
 
     this._app = http.createServer((...args) => this._handler(...args));
     this._io = sIO(this._app, {path: '/socket.io/'});
@@ -34,7 +36,30 @@ class Server {
     socket.on('disconnect', (reason) => {
       console.log('DISCONNECT', socket.id, reason);
       delete this._sockets[socket.id];
+      delete this._controllers[socket.id];
+      delete this._games[socket.id];
     });
+
+    socket.on('identify', (type) => {
+      switch (type) {
+        case 'game':
+          this._games[socket.id] = socket;
+          break;
+        case 'controller':
+          this._controllers[socket.id] = socket;
+          socket.on('data', (...args) => this._handleNewRotation(...args));
+          break;
+        default:
+          console.error('Unkown ID', type, socket.id);
+          break;
+      }
+    });
+  }
+  _handleNewRotation(data) {
+    for (const g in this._games) {
+      if (!g || !g.emit) continue;
+      g.emit('data', data);
+    }
   }
   exit() {
     if (this._app) this._app.close();
