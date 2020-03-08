@@ -3,16 +3,32 @@
  * @returns {boolean} True if overlapping, false otherwise.
  */
 function checkOverlapping(a, b, middle = true) {
-  if (middle) {
-    a = {x: a.x, y: a.y, width: a.width, height: a.height, angle: a.angle};
-    b = {x: b.x, y: b.y, width: b.width, height: b.height, angle: b.angle};
-
-    a.x = a.x - a.width / 2;
-    a.y = a.y - a.height / 2;
-  }
-  if (a.angle || b.angle) return checkRotatedOverlapping(a, b);
   verifyRect(a);
   verifyRect(b);
+  a = {x: a.x, y: a.y, width: a.width, height: a.height, angle: a.angle};
+  b = {x: b.x, y: b.y, width: b.width, height: b.height, angle: b.angle};
+  while (a.angle < 0) a.angle += 360;
+  while (a.angle > 360) a.angle -= 360;
+  while (b.angle < 0) b.angle += 360;
+  while (b.angle > 360) b.angle -= 360;
+  if ((a.angle > 45 && a.angle < 135) || (a.angle > 225 && a.angle < 315)) {
+    const tmp = a.width;
+    a.width = a.height;
+    a.height = tmp;
+  }
+  if ((b.angle > 45 && b.angle < 135) || (b.angle > 225 && b.angle < 315)) {
+    const tmp = b.width;
+    b.width = b.height;
+    b.height = tmp;
+  }
+  if (middle) {
+    a.x = a.x - a.width / 2;
+    a.y = a.y - a.height / 2;
+    b.x = b.x - b.width / 2;
+    b.y = b.y - b.height / 2;
+  }
+
+  // if (a.angle || b.angle) return checkRotatedOverlapping(a, b);
 
   return ((a.x < b.x && a.x + a.width > b.x) ||
           (a.x > b.x && a.x < b.x + b.width)) &&
