@@ -87,7 +87,7 @@ class Server {
       if (!i) continue;
       const g = this._games[i];
       if (!g || !g.emit) continue;
-      if (data.id && data.id !== g.gameId) continue;
+      // if (data.id && data.id !== g.gameId) continue;
       g.emit('data', data);
     }
   }
