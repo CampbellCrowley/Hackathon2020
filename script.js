@@ -1,19 +1,25 @@
 const socket = io();
 const speed = 4;
 socket.on('data', (data) => {
-  car.sprite.x += data.gamma / 90 * speed;
-  car.sprite.y += data.beta / 90 * speed;
+  // data.alpha = Math.max(-60, Math.min(60, data.alpha));
+  cars[0].sprite.angle = -data.alpha;
+  const rotated = rotateVector(data.gamma / 90 * speed, data.beta / 90 * speed, data.alpha - 90);
+  cars[0].sprite.x += rotated.x;
+  cars[0].sprite.y += rotated.y;
+  // car.sprite.x += data.gamma / 90 * speed;
+  // car.sprite.y += data.beta / 90 * speed;
 });
 socket.on('connect', () => {
   console.log('Connected');
   socket.emit('identify', 'game');
-})
+});
 
 // Nunber of lines
-var MAX_ROAD_LINES = 6;
+const MAX_ROAD_LINES = 6;
+const MAX_TRAFFIC = 7;
 
 // Game globals
-var car;
+var cars = [];
 var road;
 
 function startGame() {
@@ -32,31 +38,25 @@ function startGame() {
       }
     }
   };
-  road.bg = new createShader(40, 0, 910, 540, 'lightgray', road);
+  road.bg = new createSprite(40, 0, 910, 540, 0, 'lightgray', road);
   for (var i = 0; i < MAX_ROAD_LINES; i++) {
-    road.lines.push(new createShader(495, i * 98, 10, 50, 'yellow', null));
+    road.lines.push(new createSprite(495, i * 98, 10, 50, 0, 'yellow', null));
   }
   
-  // Create the car
-  car = {
-    imgLoaded: false,
-    img: new Image(),
-    sprite: null, 
-    speed: 0,
-  };
-  car.sprite = new createShader(495, 120, 20, 20, 'red', car);
-  car.img.src = 'images/car.png';
-  car.img.onload = function () {
-	  car.imgLoaded = true;
-  };
+  // Create user car
+  cars.push(new createCar(495, 300, false));
 }
 
+// Car timer
+var trafficTimer = 0;
+
 // Constructor for a game object
-function createShader(x, y, width, height, color, obj) {
+function createSprite(x, y, width, height, angle, color, obj) {
   this.width = width;
   this.height = height;
   this.x = x;
   this.y = y;
+  this.angle = angle;
   if (obj === null) {
     ctx = myGameArea.context;
     ctx.fillStyle = color;
@@ -72,7 +72,36 @@ function createShader(x, y, width, height, color, obj) {
     if (!obj || !obj.imgLoaded) {
       ctx.fillRect(this.x, this.y, this.width, this.height);
     } else {
-      ctx.drawImage(obj.img, this.x, this.y);
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle * (3.14 / 180));
+      ctx.drawImage(obj.img,
+        -(obj.img.width / 2),
+        -(obj.img.height / 2));
+      ctx.restore();
+    }
+  }
+}
+
+//  car.sprite = new createSprite(495, 120, 20, 20, null, car);
+function createCar(x, y, oncoming) {
+  this.sprite = new createSprite(x, y, 128, 128, oncoming ? 90 : 270, null, this);
+  this.imgLoaded = false;
+  this.img = new Image();
+  this.img.src = 'images/car.png';
+  this.img.onload = () => {
+    this.imgLoaded = true;
+  };
+  this.oncoming = oncoming;
+  this.invalid = false;
+  this.anim = () => {
+    if (this.oncoming) {
+      this.sprite.y += 10;
+    } else {
+      this.sprite.y -= 10;
+    }
+    if (this.sprite.y - 64 > 540 || this.sprite.y + 128 < 0) {
+      this.invalid = true;
     }
   }
 }
@@ -101,6 +130,31 @@ function updateGameArea() {
     road.anim();
     road.lines[i].update();
   }
+  cars[0].sprite.update();
+  for (var i = 1; i < cars.length; i++) {
+    if (checkOverlapping(cars[0].sprite, cars[i].sprite)) {
+      cars.splice(1, cars.length);
+      cars[0].sprite.x = 495;
+      cars[0].sprite.y = 120;
+      cars[0].sprite.angle = 275;
+    }
+    if (cars[i].invalid) {
+      cars.splice(i--, 1);
+    } else {
+      cars[i].anim();
+      cars[i].sprite.update();
+    }
+  }
 
-  car.sprite.update();
+  trafficTimer++;
+  if (trafficTimer > 50) {
+    var oncoming = Math.floor(Math.random() * 2);
+    var x = Math.floor(Math.random() * 405 - 128);
+    if (oncoming) {
+      cars.push(new createCar(x + 128 + 64, -45, true));
+    } else {
+      cars.push(new createCar(x + 545 + 64 + 64, 585, false));
+    }
+    trafficTimer = 0;
+  }
 }
