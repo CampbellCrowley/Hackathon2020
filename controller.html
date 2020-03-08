@@ -24,30 +24,47 @@
 		<script>
 			var alpha;
 			var alphaTemp= 0;
+			var beta;
+			var betaTemp= 0;
+			var gamma;
+			var gammaTemp= 0;
 			window.addEventListener("deviceorientation", handleOrientation);
 			function handleOrientation(event)
 			{
 				alpha = event.alpha - 270;
-				var beta = event.beta;
-				var gamma = event.gamma;
+				beta = event.beta;
+				gamma = event.gamma;
 				if (alphaTemp == 0)
 				{
 					document.getElementById("yaw").innerHTML = alpha;
 				} else {
 					document.getElementById("yaw").innerHTML = alpha - alphaTemp;
 				}
-				document.getElementById("pitch").innerHTML = beta;	
-				document.getElementById("roll").innerHTML = gamma;	
+				if (betaTemp == 0)
+				{
+					document.getElementById("pitch").innerHTML = beta;	
+				} else {
+					document.getElementById("pitch").innerHTML = beta - betaTemp;	
+				}
+				if (gammaTemp == 0)
+				{
+					document.getElementById("roll").innerHTML = gamma;	
+				} else {
+					document.getElementById("roll").innerHTML = gamma - gammaTemp;	
+				}
+
 				socket.emit('data', {
 				alpha:alpha - alphaTemp,
-				beta:beta,
-				gamma:gamma,
+				beta:beta - betaTemp,
+				gamma:gamma - gammaTemp,
 				});
 
 			}
 			function buttonClick(event)
 			{
 				alphaTemp = alpha +270;
+				betaTemp = beta +270;
+				gammaTemp = gamma +270;
 			}
 			const socket = io();
 			socket.on('ping',  () =>  {
