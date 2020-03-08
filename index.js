@@ -61,8 +61,8 @@ class Server {
       delete this._games[socket.id];
     });
 
-    socket.on('identify', (type) => {
-      console.log('ID:', type, socket.id);
+    socket.on('identify', (type, id) => {
+      console.log('ID:', type, id, socket.id);
       switch (type) {
         case 'game':
           this._games[socket.id] = socket;
@@ -73,7 +73,11 @@ class Server {
           break;
         default:
           console.error('Unkown ID', type, socket.id);
-          break;
+          socket.disconnect();
+          return;
+      }
+      if (id) {
+        socket.gameId = id;
       }
     });
   }
@@ -83,6 +87,7 @@ class Server {
       if (!i) continue;
       const g = this._games[i];
       if (!g || !g.emit) continue;
+      if (data.id && data.id !== g.gameId) continue;
       g.emit('data', data);
     }
   }
