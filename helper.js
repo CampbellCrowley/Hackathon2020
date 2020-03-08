@@ -2,7 +2,11 @@
  * Check if the two given objects are overlapping.
  * @returns {boolean} True if overlapping, false otherwise.
  */
-function checkOverlapping(a, b) {
+function checkOverlapping(a, b, middle = true) {
+  if (middle) {
+    a.x = a.x - a.width / 2;
+    a.y = a.y - a.height / 2;
+  }
   if (a.angle || b.angle) return checkRotatedOverlapping(a, b);
   verifyRect(a);
   verifyRect(b);

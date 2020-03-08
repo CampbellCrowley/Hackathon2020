@@ -1,13 +1,28 @@
 const socket = io();
 const speed = 4;
+const players = {};
+let numPlayers = 1;
 socket.on('data', (data) => {
-  // data.alpha = Math.max(-60, Math.min(60, data.alpha));
-  car.sprite.angle = -data.alpha;
-  const rotated = rotateVector(data.gamma / 90 * speed, data.beta / 90 * speed, data.alpha - 90);
-  car.sprite.x += rotated.x;
-  car.sprite.y += rotated.y;
-  // car.sprite.x += data.gamma / 90 * speed;
-  // car.sprite.y += data.beta / 90 * speed;
+  const pId = data.id || 'solo';
+  if (!players) {
+    players[pId] = {id: pId, index: numPlayers.length};
+    numPlayers++;
+    if (players[pId].index !== 0) {
+      cars.splice(players[pId].index, 0, new createCar(495, 120, false));
+    }
+  }
+  players[data.id || 'solo'].rotation = data;
+});
+socket.on('gone', (id) => {
+  const index = (players[id || 'solo'] || {}).index || 0;
+  if (index === 0 && numPlayers === 1) return;
+  numPlayers--;
+  delete players[id || 'solo'];
+  cars.splice(index, 1);
+  for (const p in players) {
+    if (!p) continue;
+    if (players[p].index >= index) players[p].index--;
+  }
 });
 socket.on('connect', () => {
   console.log('Connected');
@@ -15,10 +30,11 @@ socket.on('connect', () => {
 });
 
 // Nunber of lines
-var MAX_ROAD_LINES = 6;
+const MAX_ROAD_LINES = 6;
+const MAX_TRAFFIC = 7;
 
 // Game globals
-var car;
+var cars = [];
 var road;
 
 function startGame() {
@@ -37,32 +53,25 @@ function startGame() {
       }
     }
   };
-  road.bg = new createSprite(40, 0, 910, 540, 'lightgray', road);
+  road.bg = new createSprite(40, 0, 910, 540, 0, 'lightgray', road);
   for (var i = 0; i < MAX_ROAD_LINES; i++) {
-    road.lines.push(new createSprite(495, i * 98, 10, 50, 'yellow', null));
+    road.lines.push(new createSprite(495, i * 98, 10, 50, 0, 'yellow', null));
   }
 
-  // Create the car
-  car = {
-    imgLoaded: false,
-    img: new Image(),
-    sprite: null,
-    speed: 0,
-  };
-  car.sprite = new createSprite(495, 120, 20, 20, 'red', car);
-  car.img.src = 'images/car.png';
-  car.img.onload = function () {
-	  car.imgLoaded = true;
-  };
+  // Create user car
+  cars.push(new createCar(495, 120, false));
 }
 
+// Car timer
+var trafficTimer = 0;
+
 // Constructor for a game object
-function createSprite(x, y, width, height, color, obj) {
+function createSprite(x, y, width, height, angle, color, obj) {
   this.width = width;
   this.height = height;
   this.x = x;
   this.y = y;
-  this.angle = 270;
+  this.angle = angle;
   if (obj === null) {
     ctx = myGameArea.context;
     ctx.fillStyle = color;
@@ -85,6 +94,29 @@ function createSprite(x, y, width, height, color, obj) {
         -(obj.img.width / 2),
         -(obj.img.height / 2));
       ctx.restore();
+    }
+  }
+}
+
+//  car.sprite = new createSprite(495, 120, 20, 20, null, car);
+function createCar(x, y, oncoming) {
+  this.sprite = new createSprite(x, y, 128, 128, oncoming ? 90 : 270, null, this);
+  this.imgLoaded = false;
+  this.img = new Image();
+  this.img.src = 'images/car.png';
+  this.img.onload = () => {
+    this.imgLoaded = true;
+  };
+  this.oncoming = oncoming;
+  this.invalid = false;
+  this.anim = () => {
+    if (this.oncoming) {
+      this.sprite.y++;
+    } else {
+      this.sprite.y--;
+    }
+    if (this.sprite.y > 540 || this.sprite.y + 128 < 0) {
+      this.invalid = true;
     }
   }
 }
@@ -113,6 +145,31 @@ function updateGameArea() {
     road.anim();
     road.lines[i].update();
   }
+  for (var data in rotations) {
+    cars[0].sprite.angle = -data.alpha;
+    const rotated = rotateVector(
+        data.gamma / 90 * speed, data.beta / 90 * speed, data.alpha - 90);
+    cars[0].sprite.x += rotated.x;
+    cars[0].sprite.y += rotated.y;
+  }
+  cars[0].sprite.update();
+  for (var i = 1; i < cars.length; i++) {
+    if (cars[i].invalid) {
+      cars.splice(i--, 1);
+    } else {
+      cars[i].anim();
+      cars[i].sprite.update();
+    }
+  }
 
-  car.sprite.update();
+  trafficTimer++;
+  if (trafficTimer > 25) {
+    var oncoming = Math.floor(Math.random() * 2);
+    if (oncoming) {
+      cars.push(new createCar(200, 0, true));
+    } else {
+      cars.push(new createCar(445, 540, false));
+    }
+    trafficTimer = 0;
+  }
 }
