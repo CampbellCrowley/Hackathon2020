@@ -106,7 +106,8 @@ function createSprite(x, y, width, height, angle, color, obj) {
 
 //  car.sprite = new createSprite(495, 120, 20, 20, null, car);
 function createCar(x, y, oncoming, tint) {
-  this.sprite = new createSprite(x, y, 128, 128, oncoming ? 90 : 270, null, this);
+  this.sprite =
+      new createSprite(x, y, 128 / 2, 128, oncoming ? 90 : 270, null, this);
   this.imgLoaded = false;
   this.img = new Image();
   this.img.src = 'images/car.png';
