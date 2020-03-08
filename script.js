@@ -1,8 +1,9 @@
 const socket = io();
 const speed = 4;
 socket.on('data', (data) => {
+  // data.alpha = Math.max(-60, Math.min(60, data.alpha));
   car.sprite.angle = -data.alpha;
-  const rotated = rotateVector(data.gamma / 90 * speed, data.beta / 90 * speed, -data.alpha);
+  const rotated = rotateVector(data.gamma / 90 * speed, data.beta / 90 * speed, data.alpha - 90);
   car.sprite.x += rotated.x;
   car.sprite.y += rotated.y;
   // car.sprite.x += data.gamma / 90 * speed;
