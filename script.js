@@ -59,7 +59,7 @@ function startGame() {
   }
 
   // Create user car
-  cars.push(new createCar(495, 120, false));
+  cars.push(new createCar(495, 300, false));
 }
 
 // Car timer
@@ -111,11 +111,11 @@ function createCar(x, y, oncoming) {
   this.invalid = false;
   this.anim = () => {
     if (this.oncoming) {
-      this.sprite.y++;
+      this.sprite.y += 10;
     } else {
-      this.sprite.y--;
+      this.sprite.y -= 10;
     }
-    if (this.sprite.y > 540 || this.sprite.y + 128 < 0) {
+    if (this.sprite.y - 64 > 540 || this.sprite.y + 128 < 0) {
       this.invalid = true;
     }
   }
@@ -158,6 +158,12 @@ function updateGameArea() {
     lastI = i;
   }
   for (var i = lastI + 1; i < cars.length; i++) {
+    if (checkOverlapping(cars[0].sprite, cars[i].sprite)) {
+      cars.splice(1, cars.length);
+      cars[0].sprite.x = 495;
+      cars[0].sprite.y = 120;
+      cars[0].sprite.angle = 275;
+    }
     if (cars[i].invalid) {
       cars.splice(i--, 1);
     } else {
@@ -167,12 +173,13 @@ function updateGameArea() {
   }
 
   trafficTimer++;
-  if (trafficTimer > 25) {
+  if (trafficTimer > 50) {
     var oncoming = Math.floor(Math.random() * 2);
+    var x = Math.floor(Math.random() * 405 - 128);
     if (oncoming) {
-      cars.push(new createCar(200, 0, true));
+      cars.push(new createCar(x + 128 + 64, -45, true));
     } else {
-      cars.push(new createCar(445, 540, false));
+      cars.push(new createCar(x + 545 + 64 + 64, 585, false));
     }
     trafficTimer = 0;
   }
