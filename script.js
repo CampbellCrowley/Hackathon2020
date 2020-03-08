@@ -7,7 +7,7 @@ socket.on('data', (data) => {
   if (!players[pId]) {
     players[pId] = {id: pId, index: numPlayers};
     numPlayers++;
-    const created = new createCar(495, 120, false);
+    const created = new createCar(495, 120, false, false);
     if (!cars.length) {
       cars.push(created);
     } else if (players[pId].index !== 0) {
@@ -92,6 +92,10 @@ function createSprite(x, y, width, height, angle, color, obj) {
     if (!obj || !obj.imgLoaded) {
       ctx.fillRect(this.x, this.y, this.width, this.height);
     } else {
+      if (obj.tint) {
+        var rgbks = generateRGBKs(obj.img);
+        var tintImg = generateTintImage(obj.img, rgbks);
+      }
       ctx.save();
       ctx.translate(this.x, this.y);
       ctx.rotate(this.angle * (3.14 / 180));
@@ -104,7 +108,7 @@ function createSprite(x, y, width, height, angle, color, obj) {
 }
 
 //  car.sprite = new createSprite(495, 120, 20, 20, null, car);
-function createCar(x, y, oncoming) {
+function createCar(x, y, oncoming, tint) {
   this.sprite = new createSprite(x, y, 128, 128, oncoming ? 90 : 270, null, this);
   this.imgLoaded = false;
   this.img = new Image();
@@ -112,6 +116,13 @@ function createCar(x, y, oncoming) {
   this.img.onload = () => {
     this.imgLoaded = true;
   };
+  if (tint) {
+    var r = Math.floor(Math.random() * 255);
+    var g = Math.floor(Math.random() * 255);
+    var b = Math.floor(Math.random() * 255);
+    var rgbks = generateRGBKs( this.img );
+    this.img = generateTintImage( this.img, rgbks, r, g, b );
+  }
   this.oncoming = oncoming;
   this.invalid = false;
   this.anim = () => {
@@ -139,6 +150,83 @@ var myGameArea = {
   clear : function() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
+}
+
+function generateRGBKs( img ) {
+  var w = img.width;
+  var h = img.height;
+  var rgbks = [];
+
+  var canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  
+  var ctx = canvas.getContext("2d");
+  ctx.drawImage( img, 0, 0 );
+  
+  var pixels = ctx.getImageData( 0, 0, w, h ).data;
+
+  // 4 is used to ask for 3 images: red, green, blue and
+  // black in that order.
+  for ( var rgbI = 0; rgbI < 4; rgbI++ ) {
+      var canvas = document.createElement("canvas");
+      canvas.width  = w;
+      canvas.height = h;
+      
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage( img, 0, 0 );
+      var to = ctx.getImageData( 0, 0, w, h );
+      var toData = to.data;
+      
+      for (
+              var i = 0, len = pixels.length;
+              i < len;
+              i += 4
+      ) {
+          toData[i  ] = (rgbI === 0) ? pixels[i  ] : 0;
+          toData[i+1] = (rgbI === 1) ? pixels[i+1] : 0;
+          toData[i+2] = (rgbI === 2) ? pixels[i+2] : 0;
+          toData[i+3] =                pixels[i+3]    ;
+      }
+      
+      ctx.putImageData( to, 0, 0 );
+      
+      // image is _slightly_ faster then canvas for this, so convert
+      var imgComp = new Image();
+      imgComp.src = canvas.toDataURL();
+      
+      rgbks.push( imgComp );
+  }
+
+  return rgbks;
+}
+
+function generateTintImage( img, rgbks, red, green, blue ) {
+  var buff = document.createElement( "canvas" );
+  buff.width  = img.width;
+  buff.height = img.height;
+  
+  var ctx  = buff.getContext("2d");
+
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'copy';
+  ctx.drawImage( rgbks[3], 0, 0 );
+
+  ctx.globalCompositeOperation = 'lighter';
+  if ( red > 0 ) {
+      ctx.globalAlpha = red   / 255.0;
+      ctx.drawImage( rgbks[0], 0, 0 );
+  }
+  if ( green > 0 ) {
+      ctx.globalAlpha = green / 255.0;
+      ctx.drawImage( rgbks[1], 0, 0 );
+  }
+  if ( blue > 0 ) {
+      ctx.globalAlpha = blue  / 255.0;
+      ctx.drawImage( rgbks[2], 0, 0 );
+  }
+
+  return buff;
 }
 
 // Main loop
@@ -191,9 +279,9 @@ function updateGameArea() {
     var oncoming = Math.floor(Math.random() * 2);
     var x = Math.floor(Math.random() * 405 - 128);
     if (oncoming) {
-      cars.push(new createCar(x + 128 + 64, -45, true));
+      cars.push(new createCar(x + 128 + 64, -45, true, true));
     } else {
-      cars.push(new createCar(x + 545 + 64 + 64, 585, false));
+      cars.push(new createCar(x + 545 + 64 + 64, 585, false, true));
     }
     trafficTimer = 0;
   }
