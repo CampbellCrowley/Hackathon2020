@@ -24,33 +24,17 @@
 		<script>
 			var alpha;
 			var alphaTemp= 0;
-			var beta;
-			var betaTemp= 0;
-			var gamma;
-			var gammaTemp= 0;
 			window.addEventListener("deviceorientation", handleOrientation);
 			function handleOrientation(event)
 			{
 				alpha = event.alpha - 270;
-				beta = event.beta;
-				gamma = event.gamma;
+				var beta = event.beta;
+				var gamma = event.gamma;
 				if (alphaTemp == 0)
 				{
 					document.getElementById("yaw").innerHTML = alpha;
 				} else {
 					document.getElementById("yaw").innerHTML = alpha - alphaTemp;
-				}
-				if (betaTemp == 0)
-				{
-					document.getElementById("pitch").innerHTML = beta;	
-				} else {
-					document.getElementById("pitch").innerHTML = beta - betaTemp;	
-				}
-				if (gammaTemp == 0)
-				{
-					document.getElementById("roll").innerHTML = gamma;	
-				} else {
-					document.getElementById("roll").innerHTML = gamma - gammaTemp;	
 				}
 
 				socket.emit('data', {
@@ -63,8 +47,6 @@
 			function buttonClick(event)
 			{
 				alphaTemp = alpha +270;
-				betaTemp = beta +270;
-				gammaTemp = gamma +270;
 			}
 			const socket = io();
 			socket.on('ping',  () =>  {
