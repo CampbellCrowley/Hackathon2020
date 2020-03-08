@@ -37,6 +37,8 @@
 					document.getElementById("yaw").innerHTML = alpha - alphaTemp;
 				}
 
+				document.getElementById("pitch").innerHTML = beta;
+				document.getElementById("roll").innerHTML = gamma;
 				socket.emit('data', {
 				alpha:alpha - alphaTemp,
 				beta:beta,
