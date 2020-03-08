@@ -11,7 +11,7 @@ function checkOverlapping(a, b, middle = true) {
   while (a.angle > 360) a.angle -= 360;
   while (b.angle < 0) b.angle += 360;
   while (b.angle > 360) b.angle -= 360;
-  if ((a.angle > 45 && a.angle < 135) || (a.angle > 225 && a.angle < 315)) {
+  /* if ((a.angle > 45 && a.angle < 135) || (a.angle > 225 && a.angle < 315)) {
     const tmp = a.width;
     a.width = a.height;
     a.height = tmp;
@@ -20,7 +20,7 @@ function checkOverlapping(a, b, middle = true) {
     const tmp = b.width;
     b.width = b.height;
     b.height = tmp;
-  }
+  } */
   if (middle) {
     a.x = a.x - a.width / 2;
     a.y = a.y - a.height / 2;
