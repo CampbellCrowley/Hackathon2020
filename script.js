@@ -145,15 +145,19 @@ function updateGameArea() {
     road.anim();
     road.lines[i].update();
   }
-  for (var data in rotations) {
-    cars[0].sprite.angle = -data.alpha;
+  let lastI = 1;
+  for (const p in players) {
+    const data = p.rotation;
+    const i = p.index;
+    cars[i].sprite.angle = -data.alpha;
     const rotated = rotateVector(
         data.gamma / 90 * speed, data.beta / 90 * speed, data.alpha - 90);
-    cars[0].sprite.x += rotated.x;
-    cars[0].sprite.y += rotated.y;
+    cars[i].sprite.x += rotated.x;
+    cars[i].sprite.y += rotated.y;
+    cars[i].sprite.update();
+    lastI = i;
   }
-  cars[0].sprite.update();
-  for (var i = 1; i < cars.length; i++) {
+  for (var i = lastI + 1; i < cars.length; i++) {
     if (cars[i].invalid) {
       cars.splice(i--, 1);
     } else {
