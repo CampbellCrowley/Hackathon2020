@@ -257,6 +257,8 @@ function updateGameArea() {
     cars[i].sprite.y = Math.min(
         road.bg.height + road.bg.y, Math.max(road.bg.y, cars[i].sprite.y));
     cars[i].sprite.update();
+    ctx.font = "30px Arial";
+    ctx.fillText(`P${i+1}`, cars[i].sprite.x - 15, cars[i].sprite.y + 15);
   }
   if (resetTime) startTime = Date.now();
   timer.textContent =
