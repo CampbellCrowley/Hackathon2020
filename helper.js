@@ -15,6 +15,9 @@ function checkOverlapping(a, b) {
 
 /**
  * Please call `checkOverlapping()` instead of this function.
+ *
+ * @link
+ * https://stackoverflow.com/questions/10962379/how-to-check-intersection-between-2-rotated-rectangles
  */
 function checkRotatedOverlapping(a, b) {
   verifyRect(a, ['angle']);
