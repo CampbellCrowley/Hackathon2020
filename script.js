@@ -33,6 +33,7 @@ const MAX_TRAFFIC = 7;
 
 let gameOver = false;
 let startTime = Date.now();
+let lastDur = 0;
 const timer = document.getElementById('timer');
 
 // Game globals
@@ -261,8 +262,9 @@ function updateGameArea() {
     ctx.fillText(`P${i+1}`, cars[i].sprite.x - 15, cars[i].sprite.y + 15);
   }
   if (resetTime) startTime = Date.now();
-  timer.textContent =
-      Math.floor((Date.now() - startTime) / 100) / 10 + ' seconds';
+  timer.textContent = Math.floor((Date.now() - startTime) / 100) / 10 +
+      ' seconds      High Score: ' + Math.floor(lastDur / 100) / 10 +
+      ' seconds';
   for (var i = lastI + 1; i < cars.length; i++) {
     for (const p in players) {
       const player = players[p];
@@ -273,6 +275,7 @@ function updateGameArea() {
         cars[i2].sprite.y = 120;
         cars[i2].sprite.angle = 275;
         gameOver = true;
+        if (Date.now() - startTime > lastDur) lastDur = Date.now() - startTime;
         startTime = Date.now();
       }
     }
