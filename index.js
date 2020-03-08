@@ -59,6 +59,13 @@ class Server {
       delete this._sockets[socket.id];
       delete this._controllers[socket.id];
       delete this._games[socket.id];
+
+      for (const i in this._games) {
+        if (!i) continue;
+        const g = this._games[i];
+        if (!g || !g.emit) continue;
+        g.emit('gone', socket.id);
+      }
     });
 
     socket.on('identify', (type, id) => {
@@ -69,7 +76,7 @@ class Server {
           break;
         case 'controller':
           this._controllers[socket.id] = socket;
-          socket.on('data', (...args) => this._handleNewRotation(...args));
+          socket.on('data', (data) => this._handleNewRotation(data, socket.id));
           break;
         default:
           console.error('Unkown ID', type, socket.id);
@@ -81,13 +88,13 @@ class Server {
       }
     });
   }
-  _handleNewRotation(data) {
+  _handleNewRotation(data, id) {
+    data.id = id;
     console.log('New Data', JSON.stringify(data));
     for (const i in this._games) {
       if (!i) continue;
       const g = this._games[i];
       if (!g || !g.emit) continue;
-      if (data.id && data.id !== g.gameId) continue;
       g.emit('data', data);
     }
   }
