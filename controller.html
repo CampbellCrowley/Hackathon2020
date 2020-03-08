@@ -1,29 +1,16 @@
 <html>
 	<head>
 		<title>Hello World</title>
+		<link rel= "stylesheet" type= "text/css" href="style.css">
 	</head>
-	<style>
-	body {
-		margin: 0 auto;
-		font: 300%;
-	}	
-	</style>
-	<body>
-		<form action="" method="">
-	</body>
-
 	
 	<style>
 	body {
 		width: 45%;
 		margin: 0 auto;
 		font-size: 3em;
-	}	
-	</style>
-	<body>
-		<form action="" method="">
-		<input type="submit" name="resetbotton" value="Reset Car">
-		</form>
+	</style>	
+	<body><br>
 		<img src="images/yaw.png" /><br>
 		Yaw: <b id="yaw"></b><br>
 		<img src="images/pitch.png" /><br>
@@ -32,29 +19,41 @@
 		Roll: <b id="roll"></b>
 		<script src="/node_modules/socket.io-client/dist/socket.io.js"></script>
 		<script>
+			var alpha;
+			var alphaTemp= 0;
 			window.addEventListener("deviceorientation", handleOrientation);
 			function handleOrientation(event)
 			{
-				var alpha = event.alpha - 270;
+				alpha = event.alpha - 270;
 				var beta = event.beta;
 				var gamma = event.gamma;
-				document.getElementById("yaw").innerHTML = alpha;	
+				if (alphaTemp == 0)
+				{
+					document.getElementById("yaw").innerHTML = alpha;
+				} else {
+					document.getElementById("yaw").innerHTML = alpha - alphaTemp;
+				}
 				document.getElementById("pitch").innerHTML = beta;	
 				document.getElementById("roll").innerHTML = gamma;	
 				socket.emit('data', {
-				alpha:event.alpha,
-				beta:event.beta,
-				gamma:event.gamma,
+				alpha:alpha - alphaTemp,
+				beta:beta,
+				gamma:gamma,
 				});
 
 			}
-				const socket = io();
+			function buttonClick(event)
+			{
+				alphaTemp = alpha;
+			}
+			const socket = io();
 			socket.on('ping',  () =>  {
 				console.log(" ping ")});
 			socket.on('connect',  () =>  {
 				socket.emit('identify', 'controller');
 			});
 		</script>
+		<button onclick= "buttonClick()">Reset to 0</button><br>
 	</body>
 
 </html>
