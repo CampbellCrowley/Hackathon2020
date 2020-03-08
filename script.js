@@ -1,21 +1,24 @@
 const socket = io();
-const speed = 4;
+const speed = 0;
 const players = {};
-let numPlayers = 1;
+let numPlayers = 0;
 socket.on('data', (data) => {
   const pId = data.id || 'solo';
-  if (!players) {
-    players[pId] = {id: pId, index: numPlayers.length};
+  if (!players[pId]) {
+    players[pId] = {id: pId, index: numPlayers};
     numPlayers++;
-    if (players[pId].index !== 0) {
-      cars.splice(players[pId].index, 0, new createCar(495, 120, false));
+    const created = new createCar(495, 120, false);
+    if (!cars.length) {
+      cars.push(created);
+    } else if (players[pId].index !== 0) {
+      cars.splice(players[pId].index, 0, created);
     }
   }
-  players[data.id || 'solo'].rotation = data;
+  players[pId].rotation = data;
+  console.log(players, cars);
 });
 socket.on('gone', (id) => {
   const index = (players[id || 'solo'] || {}).index || 0;
-  if (index === 0 && numPlayers === 1) return;
   numPlayers--;
   delete players[id || 'solo'];
   cars.splice(index, 1);
@@ -32,6 +35,8 @@ socket.on('connect', () => {
 // Nunber of lines
 const MAX_ROAD_LINES = 6;
 const MAX_TRAFFIC = 7;
+
+let gameOver = false;
 
 // Game globals
 var cars = [];
@@ -59,7 +64,7 @@ function startGame() {
   }
 
   // Create user car
-  cars.push(new createCar(495, 300, false));
+  //cars.push(new createCar(495, 300, false));
 }
 
 // Car timer
@@ -138,6 +143,8 @@ var myGameArea = {
 
 // Main loop
 function updateGameArea() {
+  const lastGO = gameOver;
+  gameOver = false;
   myGameArea.clear();
 
   road.bg.update();
@@ -145,27 +152,34 @@ function updateGameArea() {
     road.anim();
     road.lines[i].update();
   }
-  let lastI = 1;
+  let lastI = -1;
   for (const p in players) {
-    const data = p.rotation;
-    const i = p.index;
-    cars[i].sprite.angle = -data.alpha;
-    const rotated = rotateVector(
-        data.gamma / 90 * speed, data.beta / 90 * speed, data.alpha - 90);
-    cars[i].sprite.x += rotated.x;
-    cars[i].sprite.y += rotated.y;
-    cars[i].sprite.update();
+    const player = players[p];
+    const i = player.index;
     lastI = i;
+    const data = player.rotation;
+    cars[i].sprite.angle = -data.alpha;
+    const rotated =
+        rotateVector(data.gamma / 90, data.beta / 90, data.alpha - 90);
+    cars[i].sprite.x += rotated.x * speed;
+    cars[i].sprite.y += rotated.y * speed;
+    cars[i].sprite.update();
   }
   for (var i = lastI + 1; i < cars.length; i++) {
-    if (checkOverlapping(cars[0].sprite, cars[i].sprite)) {
-      cars.splice(1, cars.length);
-      cars[0].sprite.x = 495;
-      cars[0].sprite.y = 120;
-      cars[0].sprite.angle = 275;
+    for (const p in players) {
+      const player = players[p];
+      const i2 = player.index;
+      if (gameOver || checkOverlapping(cars[i2].sprite, cars[i].sprite)) {
+        cars[i].invalid = true;
+        cars[i2].sprite.x = 495;
+        cars[i2].sprite.y = 120;
+        cars[i2].sprite.angle = 275;
+        gameOver = true;
+      }
     }
-    if (cars[i].invalid) {
-      cars.splice(i--, 1);
+    if (cars[i].invalid || gameOver || lastGO) {
+      cars.splice(i);
+      break;
     } else {
       cars[i].anim();
       cars[i].sprite.update();
