@@ -1,5 +1,5 @@
 const socket = io();
-const speed = 0;
+const speed = 4;
 const players = {};
 let numPlayers = 0;
 socket.on('data', (data) => {
@@ -15,7 +15,7 @@ socket.on('data', (data) => {
     }
   }
   players[pId].rotation = data;
-  console.log(players, cars);
+  console.log('New Data!', players, cars);
 });
 socket.on('gone', (id) => {
   const index = (players[id || 'solo'] || {}).index || 0;
@@ -160,21 +160,23 @@ function updateGameArea() {
     const data = player.rotation;
     cars[i].sprite.angle = -data.alpha;
     const rotated =
-        rotateVector(data.gamma / 90, data.beta / 90, data.alpha - 90);
-    cars[i].sprite.x += rotated.x * speed;
-    cars[i].sprite.y += rotated.y * speed;
+        rotateVector(data.gamma / 90 * speed, data.beta / 90 * speed, data.alpha - 90);
+    cars[i].sprite.x += rotated.x;
+    cars[i].sprite.y += rotated.y;
     cars[i].sprite.update();
   }
   for (var i = lastI + 1; i < cars.length; i++) {
     for (const p in players) {
       const player = players[p];
       const i2 = player.index;
+      console.log(i2);
       if (gameOver || checkOverlapping(cars[i2].sprite, cars[i].sprite)) {
         cars[i].invalid = true;
         cars[i2].sprite.x = 495;
         cars[i2].sprite.y = 120;
         cars[i2].sprite.angle = 275;
         gameOver = true;
+        break;
       }
     }
     if (cars[i].invalid || gameOver || lastGO) {

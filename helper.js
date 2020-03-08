@@ -4,6 +4,9 @@
  */
 function checkOverlapping(a, b, middle = true) {
   if (middle) {
+    a = {x: a.x, y: a.y, width: a.width, height: a.height, angle: a.angle};
+    b = {x: b.x, y: b.y, width: b.width, height: b.height, angle: b.angle};
+
     a.x = a.x - a.width / 2;
     a.y = a.y - a.height / 2;
   }
